@@ -2,17 +2,7 @@
 
 import sys
 import re
-
-REQUIRED_FIELDS = {
-    "byr": "Birth Year",
-    "iyr": "Issue Year",
-    "eyr": "Expiration Year",
-    "hgt": "Height",
-    "hcl": "Hair Color",
-    "ecl": "Eye Color",
-    "pid": "Passport ID",
-    "cid": "Country ID",
-}.keys()
+from passport_fields import REQUIRED_FIELDS, FIELD_VALIDATORS
 
 def main(input_file):
     data = open(input_file).read()
@@ -34,7 +24,10 @@ def decode_passport_entry(entry, sep=":"):
     return (parts[0], sep.join(parts[1:]))
 
 def is_valid(map, fields):
-    return 1 if len(fields - map.keys()) == 0 else 0
+    return int(all(
+        field in map and FIELD_VALIDATORS[field](map[field])
+        for field in fields
+    ))
 
 if __name__ == '__main__':
     main(sys.argv[1])
