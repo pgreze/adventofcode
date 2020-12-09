@@ -6,8 +6,8 @@ def main(input_file):
     lines = open(input_file).readlines()
     instructions = [decode_inst(l) for l in lines]
 
-    index, acc = iloop_search(instructions)
-    print(f"Infinite loop fixed after changing the instruction {index} with acc = {acc}")
+    acc = iloop_search(instructions)
+    print(f"Infinite loop fixed with acc = {acc}")
 
 def decode_inst(line: str):
     operation, rem = line.split(" ")
@@ -23,21 +23,21 @@ def iloop_search(
 ):
     if index >= len(instructions):
         # We finished the program 🙌
-        return index, acc
+        return acc
 
     if index in [idx for idx, _ in history]:
         if alternative_path:
             # This is another infinite loop
-            return -1, -1
-        
+            return -1
+
         print(f"Infinite loop found at idx={index}")
         # let's try to change all visited nop of jmp until
         # we can find an optimistic path.
         for idx, idx_acc in history[::-1]:
             op, *args = instructions[idx]
-            result = (-1, -1)
+            result = -1
             if op == "jmp":
-                # Replace with a nop operation
+                print(f"Try to replace {idx} with a nop")
                 result = iloop_search(
                     instructions, 
                     idx + 1, 
@@ -46,7 +46,7 @@ def iloop_search(
                     alternative_path=True
                 )
             elif op == "nop":
-                # Try to replace with a jump
+                print(f"Try to replace {idx} with a jmp {args}")
                 result = iloop_search(
                     instructions, 
                     idx + resolve_arg(*args),
@@ -55,11 +55,11 @@ def iloop_search(
                     alternative_path=True
                 )
 
-            if result != (-1, -1):
+            if result != -1:
                 # We just found a valid alternative path
-                return index, result[1]
+                return result
         print("No valid alternative path found")
-        return (-1, -1)
+        return -1
 
     print(f"Run instruction {index} {instructions[index]} with acc={acc}")
     operation, *args = instructions[index]
@@ -69,7 +69,13 @@ def iloop_search(
     elif operation == "jmp":
         next_index = index + resolve_arg(*args)
     # Iterate to the next instruction
-    return iloop_search(instructions, next_index, acc, history + [(index, acc)])
+    return iloop_search(
+        instructions,
+        next_index,
+        acc,
+        history + [(index, acc)],
+        alternative_path=alternative_path
+    )
 
 resolve_arg = lambda sign, arg: arg if sign == "+" else -arg
 
