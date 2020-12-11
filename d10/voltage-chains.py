@@ -6,7 +6,7 @@ from collections import Counter
 def main(input_file):
     lines = open(input_file).readlines()
     numbers = list(set(int(l.strip()) for l in lines))
-    count = pow(2, adapter_chain_count(numbers))
+    count = pow(2, adapter_chain_count([0] + numbers + [numbers[-1] + 3]))
     print(f"Available chains = {count}")
 
 def adapter_chain_count(numbers: list, index = 0):
